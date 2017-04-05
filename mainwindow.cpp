@@ -19,6 +19,8 @@ MainWindow::MainWindow(QWidget *parent) :
     this->ui->customPlot->xAxis->setTicker(timeTicker);
     this->ui->customPlot->yAxis->setRange(-180,180);
     this->ui->customPlot->replot();
+    QObject::connect(this, SIGNAL(messageSignal(QString)),
+                     this, SLOT(on_MQTTmessage(QString)));
     ::handle = this;
 }
 
@@ -73,32 +75,46 @@ void MainWindow::on_connectButton_clicked()
 
 void delivered(void *context, MQTTClient_deliveryToken dt) {
     (void)context;
-    handle->ui->outputText->appendPlainText("Message delivery confirmed");
+    // Please don't modify the Window UI from here
+    qDebug() << "Message delivery confirmed";
     handle->deliveredtoken = dt;
 }
 
+/* This is a callback function and is essentially another thread. Do not modify the
+ * main window UI from here as it will cause problems. Please see the Slot method that
+ * is directly below this function. To ensure that this method is thread safe I had to
+ * get it to emit a signal which is received by the slot method below */
 int msgarrvd(void *context, char *topicName, int topicLen, MQTTClient_message *message) {
     (void)context; (void)topicLen;
-    handle->ui->outputText->appendPlainText(QString("Message arrived (topic is %1)").arg(topicName));
-    char* payloadptr = (char*) message->payload;
-    handle->ui->outputText->appendPlainText(QString("Message payload length is %1").arg(message->payloadlen));
-    QString msg;
-    msg.sprintf("[%s]",payloadptr);
-    qDebug() << "msg is: " << payloadptr << endl;
-    handle->ui->outputText->appendPlainText(msg);
+    qDebug() << "Message arrived (topic is " << topicName << ")";
+    qDebug() << "Message payload length is " << message->payloadlen;
+    QString payload;
+    payload.sprintf("%s",(char *)message->payload);
+    emit handle->messageSignal(payload);
     MQTTClient_freeMessage(&message);
     MQTTClient_free(topicName);
     return 1;
 }
 
+/** This is the slot method. Do all of your message received work here. It is also safe
+ * to call other methods on the object from this point in the code */
+void MainWindow::on_MQTTmessage(QString payload){
+    ui->outputText->appendPlainText(payload);
+    ui->outputText->ensureCursorVisible();
+
+    //ADD YOUR CODE HERE
+}
+
 void connlost(void *context, char *cause) {
     (void)context; (void)*cause;
-    handle->ui->outputText->appendPlainText("Connection Lost");
+    // Please don't modify the Window UI from here
+    qDebug() << "Connection Lost" << endl;
 }
 
 void MainWindow::on_disconnectButton_clicked()
 {
-    handle->ui->outputText->appendPlainText("Disconnecting from the broker");
+    // Please don't modify the Window UI from here
+    qDebug() << "Disconnecting from the broker" << endl;
     MQTTClient_disconnect(client, 10000);
     //MQTTClient_destroy(&client);
 }

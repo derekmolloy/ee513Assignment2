@@ -72,6 +72,9 @@
       <height>111</height>
      </rect>
     </property>
+    <property name="centerOnScroll">
+     <bool>true</bool>
+    </property>
    </widget>
    <widget class="QPushButton" name="connectButton">
     <property name="geometry">

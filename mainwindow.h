@@ -29,6 +29,10 @@ private slots:
     void on_upButton_clicked();
     void on_connectButton_clicked();
     void on_disconnectButton_clicked();
+    void on_MQTTmessage(QString message);
+
+signals:
+    void messageSignal(QString message);
 
 private:
     Ui::MainWindow *ui;
