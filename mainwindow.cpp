@@ -113,7 +113,6 @@ void connlost(void *context, char *cause) {
 
 void MainWindow::on_disconnectButton_clicked()
 {
-    // Please don't modify the Window UI from here
     qDebug() << "Disconnecting from the broker" << endl;
     MQTTClient_disconnect(client, 10000);
     //MQTTClient_destroy(&client);
