@@ -89,7 +89,7 @@ int msgarrvd(void *context, char *topicName, int topicLen, MQTTClient_message *m
     qDebug() << "Message arrived (topic is " << topicName << ")";
     qDebug() << "Message payload length is " << message->payloadlen;
     QString payload;
-    payload.sprintf("%s",(char *)message->payload);
+    payload.sprintf("%s", (char *) message->payload).truncate(message->payloadlen);
     emit handle->messageSignal(payload);
     MQTTClient_freeMessage(&message);
     MQTTClient_free(topicName);
